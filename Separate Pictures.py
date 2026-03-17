@@ -1,4 +1,21 @@
 from PIL import Image
+import argparse
+
+parser = argparse.ArgumentParser(
+                    prog='Separate Pictures',
+                    description='Separate image consisting of pictures in a grid into multiple pictures')
+
+parser.add_argument("filename")
+parser.add_argument("--savePath")
+parser.add_argument("-s", "--show", action="store_true")
+
+def save_images(images, path_with_name):
+    for index, image in enumerate(images):
+        image.save(f"{path_with_name}_{index}.png")
+
+def show_images(images):
+    for cropped_image in images:
+        cropped_image.show()
 
 def crop_image(image, column_edges, row_edges):
     result = []
@@ -73,9 +90,12 @@ def pixel_to_luminance(pixel):
     red, green, blue = pixel
     return red * 0.2126 + green * 0.7152 + blue * 0.0722
 
-input_path = r"C:\Users\Denis\OneDrive\Documents\My GitHub\Separate Pictures\Card-Separator\0c9732d2-db70-47ee-8832-aa578f92404f.jfif"
-output_path = r"C:\Users\Denis\OneDrive\Documents\My GitHub\Separate Pictures\Card-Separator"
-output_name = r"output"
+
+args = parser.parse_args()
+
+input_path = args.filename
+save_path = args.savePath
+show = args.show
 img = Image.open(input_path)
 
 image_luminance_values = image_to_luminance(img)
@@ -87,5 +107,8 @@ white_row_edges = remove_intermediate_sorted_array_values(white_rows)
 
 cropped_images = crop_image(img, white_column_edges[1:-1], white_row_edges[1:-1])
 
-for index, cropped_image in enumerate(cropped_images):
-    cropped_image.save(f"{output_path}\\{output_name}_{index}.png")
+if show:
+    show_images(cropped_images)
+
+if save_path:
+    save_images(cropped_images, save_path)
