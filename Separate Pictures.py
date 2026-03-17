@@ -1,10 +1,13 @@
 from PIL import Image
 
-def show_image_crop(image, column_edges, row_edges):
+def crop_image(image, column_edges, row_edges):
+    result = []
     for x_index in range(0, len(column_edges), 2):
         for y_index in range(0, len(row_edges), 2):
             img_crop = image.crop((column_edges[x_index] + 1, row_edges[y_index] + 1, column_edges[x_index + 1] - 1, row_edges[y_index + 1] - 1))
-            img_crop.show()
+            result.append(img_crop)
+
+    return result
 
 def remove_intermediate_sorted_array_values(array):
     last_value = None
@@ -70,7 +73,9 @@ def pixel_to_luminance(pixel):
     red, green, blue = pixel
     return red * 0.2126 + green * 0.7152 + blue * 0.0722
 
-input_path = r""
+input_path = r"C:\Users\Denis\OneDrive\Documents\My GitHub\Separate Pictures\Card-Separator\0c9732d2-db70-47ee-8832-aa578f92404f.jfif"
+output_path = r"C:\Users\Denis\OneDrive\Documents\My GitHub\Separate Pictures\Card-Separator"
+output_name = r"output"
 img = Image.open(input_path)
 
 image_luminance_values = image_to_luminance(img)
@@ -79,7 +84,8 @@ white_rows = find_rows_over_luminance_threshold(200, image_luminance_values)
 white_column_edges = remove_intermediate_sorted_array_values(white_columns)
 white_row_edges = remove_intermediate_sorted_array_values(white_rows)
 
-print(white_column_edges)
-print(white_row_edges)
 
-show_image_crop(img, white_column_edges[1:-1], white_row_edges[1:-1])
+cropped_images = crop_image(img, white_column_edges[1:-1], white_row_edges[1:-1])
+
+for index, cropped_image in enumerate(cropped_images):
+    cropped_image.save(f"{output_path}\\{output_name}_{index}.png")
