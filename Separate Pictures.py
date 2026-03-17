@@ -5,9 +5,9 @@ parser = argparse.ArgumentParser(
                     prog='Separate Pictures',
                     description='Separate image consisting of pictures in a grid into multiple pictures')
 
-parser.add_argument("filename")
-parser.add_argument("--savePath")
-parser.add_argument("-s", "--show", action="store_true")
+parser.add_argument("filename", help="Filename or path to file that should be separated")
+parser.add_argument("--savePath", help="Filename prefix or path ending with filename prefix where to save the images to. The suffix added will be a numbering _0, _1, ... and the file extension type. If omited, result will not be saved")
+parser.add_argument("-s", "--show", action="store_true", help="Set to view the images. Shows the images one at a time and waits for closing, before opening the next one")
 
 def save_images(images, path_with_name):
     for index, image in enumerate(images):
