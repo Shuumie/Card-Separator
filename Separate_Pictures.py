@@ -1,13 +1,8 @@
 from PIL import Image
 import argparse
 
-parser = argparse.ArgumentParser(
-                    prog='Separate Pictures',
-                    description='Separate image consisting of pictures in a grid into multiple pictures')
-
-parser.add_argument("filename", help="Filename or path to file that should be separated")
-parser.add_argument("--savePath", help="Filename prefix or path ending with filename prefix where to save the images to. The suffix added will be a numbering _0, _1, ... and the file extension type. If omited, result will not be saved")
-parser.add_argument("-s", "--show", action="store_true", help="Set to view the images. Shows the images one at a time and waits for closing, before opening the next one")
+def load_image(path):
+    return Image.open(path)
 
 def save_images(images, path_with_name):
     for index, image in enumerate(images):
@@ -17,7 +12,7 @@ def show_images(images):
     for cropped_image in images:
         cropped_image.show()
 
-def crop_image(image, column_edges, row_edges):
+def crop_image_intern(image, column_edges, row_edges):
     result = []
     for x_index in range(0, len(column_edges), 2):
         for y_index in range(0, len(row_edges), 2):
@@ -25,6 +20,17 @@ def crop_image(image, column_edges, row_edges):
             result.append(img_crop)
 
     return result
+
+def crop_image(input_path):
+    img = load_image(input_path)
+    image_luminance_values = image_to_luminance(img)
+    white_columns = find_columns_over_luminance_threshold(200, image_luminance_values)
+    white_rows = find_rows_over_luminance_threshold(200, image_luminance_values)
+    white_column_edges = remove_intermediate_sorted_array_values(white_columns)
+    white_row_edges = remove_intermediate_sorted_array_values(white_rows)
+
+
+    return crop_image_intern(img, white_column_edges[1:-1], white_row_edges[1:-1])
 
 def remove_intermediate_sorted_array_values(array):
     last_value = None
@@ -76,8 +82,8 @@ def check_luminance_threshold(threshold, pixel_luminocity):
     return pixel_luminocity >= threshold
 
 def image_to_luminance(image):
-    pixels = img.load()
-    width, height = img.size
+    pixels = image.load()
+    width, height = image.size
     result = [[0] * height for _ in range(width)]
     for x in range(width):
         for y in range(height):
@@ -91,24 +97,25 @@ def pixel_to_luminance(pixel):
     return red * 0.2126 + green * 0.7152 + blue * 0.0722
 
 
-args = parser.parse_args()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                        prog='Separate Pictures',
+                        description='Separate image consisting of pictures in a grid into multiple pictures')
 
-input_path = args.filename
-save_path = args.savePath
-show = args.show
-img = Image.open(input_path)
+    parser.add_argument("filename", help="Filename or path to file that should be separated")
+    parser.add_argument("--savePath", help="Filename prefix or path ending with filename prefix where to save the images to. The suffix added will be a numbering _0, _1, ... and the file extension type. If omited, result will not be saved")
+    parser.add_argument("-s", "--show", action="store_true", help="Set to view the images. Shows the images one at a time and waits for closing, before opening the next one")
 
-image_luminance_values = image_to_luminance(img)
-white_columns = find_columns_over_luminance_threshold(200, image_luminance_values)
-white_rows = find_rows_over_luminance_threshold(200, image_luminance_values)
-white_column_edges = remove_intermediate_sorted_array_values(white_columns)
-white_row_edges = remove_intermediate_sorted_array_values(white_rows)
+    args = parser.parse_args()
 
+    input_path = args.filename
+    save_path = args.savePath
+    show = args.show
 
-cropped_images = crop_image(img, white_column_edges[1:-1], white_row_edges[1:-1])
+    cropped_images = crop_image(input_path)
 
-if show:
-    show_images(cropped_images)
+    if show:
+        show_images(cropped_images)
 
-if save_path:
-    save_images(cropped_images, save_path)
+    if save_path:
+        save_images(cropped_images, save_path)
